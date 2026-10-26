@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Steal An Parcero · Onarquina Studios</title>
+  <meta name="description" content="Steal An Parcero: roba huevos, protege tu base y colecciona parceros. Un juego de Onarquina Studios en Roblox.">
+  <link rel="icon" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Overpass es la versión libre basada en Highway Gothic (respaldo si no tienes el archivo de la fuente) -->
+  <link href="https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,700;0,800;0,900;1,700;1,800&family=Luckiest+Guy&display=swap" rel="stylesheet">
+  <style>
+    /* Si tienes el archivo de Highway Gothic, ponlo junto a esta página con el nombre HighwayGothic.ttf */
+    @font-face {
+      font-family: "Highway Gothic";
+      src: local("Highway Gothic"), local("HighwayGothic"), url("HighwayGothic.ttf") format("truetype");
+      font-display: swap;
+    }
+
+    :root {
+      --yellow: #ffd200;
+      --blue: #1f6fff;
+      --red: #e3121b;
+      --orange: #ffa500;
+      --green: #3cbf2a;
+      --green-dark: #1f7a14;
+      --panel: #1e1e23;
+      --panel-2: #2a2a30;
+      --ink: #0b0b0e;
+      --white: #ffffff;
+      --font: "Highway Gothic", "Overpass", "Arial Narrow", sans-serif;
+      --title: "Luckiest Guy", "Overpass", sans-serif;
+      /* Patrón de "bloques" tipo LEGO de las interfaces del juego */
+      --studs: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34'%3E%3Crect x='7' y='7' width='20' height='20' rx='3' fill='none' stroke='black' stroke-opacity='.16' stroke-width='2.5'/%3E%3Cpath d='M9 25V10q0-1 1-1h15' fill='none' stroke='white' stroke-opacity='.10' stroke-width='2'/%3E%3C/svg%3E");
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      font-weight: 800;
+      color: var(--white);
+      background: #141417 var(--studs);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+    /* Texto blanco con contorno negro, como en el juego */
+    .stroke {
+      -webkit-text-stroke: 4px var(--ink);
+      paint-order: stroke fill;
+      text-shadow: 0 3px 0 var(--ink);
+    }
+    .stroke-sm {
+      -webkit-text-stroke: 3px var(--ink);
+      paint-order: stroke fill;
+    }
+
+    /* Franja de bandera (amarillo / azul / rojo) con bloques */
+    .flag {
+      background-image: var(--studs),
+        linear-gradient(var(--yellow) 0 50%, var(--blue) 50% 75%, var(--red) 75% 100%);
+    }
+
+    /* ===== Barra superior ===== */
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      height: 74px; border-bottom: 4px solid var(--ink);
+    }
+    .topbar .wrap { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .studio-logo {
+      background: var(--ink); border: 3px solid var(--ink); border-radius: 12px;
+      padding: 6px 12px; display: flex; align-items: center;
+    }
+    .studio-logo img { height: 30px; width: auto; }
+
+    /* Botón rojo tipo "X" del juego */
+    .btn-red {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--red); border: 3px solid var(--ink); border-radius: 12px;
+      padding: 9px 16px; font-size: 1rem; letter-spacing: .02em;
+      box-shadow: inset 0 -5px 0 rgba(0,0,0,.28), inset 0 3px 0 rgba(255,255,255,.28), 0 3px 0 var(--ink);
+      transition: transform .1s;
+    }
+    .btn-red:hover { transform: translateY(-2px); }
+    .btn-red:active { transform: translateY(1px); }
+
+    /* ===== Ventana (panel) del juego ===== */
+    .window {
+      position: relative; background: var(--panel) var(--studs);
+      border: 5px solid var(--ink); border-radius: 18px;
+      box-shadow: 0 8px 0 var(--ink), 0 20px 40px rgba(0,0,0,.45);
+      margin-top: 70px;
+    }
+    .window::before {
+      /* Marco tricolor exterior */
+      content: ""; position: absolute; inset: -11px; border-radius: 24px; z-index: -1;
+      background-image: linear-gradient(var(--yellow) 0 50%, var(--blue) 50% 75%, var(--red) 75% 100%);
+      border: 3px solid var(--ink);
+    }
+    .window-bar {
+      height: 64px; border-bottom: 5px solid var(--ink); border-radius: 12px 12px 0 0;
+      position: relative;
+    }
+    .window-title {
+      position: absolute; left: 50%; top: -30px; transform: translateX(-50%);
+      font-family: var(--title); font-size: clamp(2.3rem, 5vw, 3.2rem); line-height: 1; white-space: nowrap;
+      color: var(--white);
+      -webkit-text-stroke: 7px #10204a; paint-order: stroke fill;
+      text-shadow: 0 5px 0 var(--blue), 0 9px 0 var(--red), 0 12px 0 #10204a;
+    }
+    .window-close {
+      position: absolute; right: 12px; top: 8px;
+      width: 46px; height: 46px; display: grid; place-items: center;
+      font-size: 1.6rem; padding: 0;
+    }
+    .window-body { padding: 26px; }
+
+    /* ===== Hero ===== */
+    .hero { padding: 44px 0 10px; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 28px; align-items: center; }
+    .thumb {
+      border: 5px solid var(--white); border-radius: 18px; overflow: hidden;
+      box-shadow: 0 0 0 5px var(--ink), 0 8px 0 5px var(--ink);
+      transform: rotate(-2deg);
+    }
+    .hero h1 {
+      font-family: var(--title); font-weight: 400;
+      font-size: clamp(2.6rem, 6vw, 4.2rem); line-height: .95; letter-spacing: .01em;
+      color: var(--white); padding-bottom: 14px;
+      -webkit-text-stroke: 8px #10204a; paint-order: stroke fill;
+      text-shadow: 0 6px 0 var(--blue), 0 11px 0 var(--red), 0 15px 0 #10204a;
+    }
+    .hero h1 .y { color: var(--yellow); }
+    /* Los emojis no llevan contorno */
+    .emoji, .icon, .price span:first-child, .vals span { -webkit-text-stroke: 0; }
+    .hero p.lead { font-size: 1.15rem; margin: 18px 0 22px; color: #e9e9ee; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
+    .tag {
+      background: var(--panel-2); border: 3px solid var(--ink); border-radius: 10px;
+      padding: 6px 12px; font-size: .9rem;
+    }
+    .tag.live { background: var(--green); }
+
+    /* Botón verde grande */
+    .btn-green {
+      display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+      background: var(--green); border: 4px solid var(--green-dark); border-radius: 14px;
+      outline: 3px solid var(--ink);
+      padding: 14px 30px; font-size: 1.5rem; letter-spacing: .02em;
+      box-shadow: inset 0 -7px 0 rgba(0,0,0,.22), inset 0 4px 0 rgba(255,255,255,.3), 0 6px 0 var(--ink);
+      transition: transform .1s;
+    }
+    .btn-green:hover { transform: translateY(-3px); }
+    .btn-green:active { transform: translateY(2px); }
+    .btn-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+
+    /* ===== Secciones ===== */
+    .section { padding: 34px 0; }
+    .section-intro { font-size: 1.05rem; color: #d9d9e0; margin-bottom: 20px; max-width: 60ch; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; }
+
+    /* Filas de color (como Rastros y Venta) */
+    .row {
+      display: flex; align-items: center; gap: 16px;
+      border: 4px solid var(--ink); border-radius: 14px; padding: 12px 14px;
+      outline: 3px solid var(--red); outline-offset: -8px;
+      background-image: var(--studs);
+      box-shadow: 0 4px 0 var(--ink);
+    }
+    .row + .row { margin-top: 12px; }
+    .row.orange { background-color: var(--orange); outline-color: #ffcf4d; }
+    .row.blue { background-color: var(--blue); outline-color: #6aa6ff; }
+    .row.green { background-color: var(--green); outline-color: #8be37f; }
+    .row.yellow { background-color: #f2b705; outline-color: #ffe27a; }
+    .row.red { background-color: var(--red); outline-color: #ff7a7f; }
+
+    .row .icon {
+      width: 64px; height: 64px; flex: none; border-radius: 12px;
+      background: rgba(0,0,0,.25); display: grid; place-items: center; font-size: 2rem;
+    }
+    .row .info { flex: 1; min-width: 0; }
+    .row .name { font-size: 1.35rem; line-height: 1.1; }
+    .row .sub { font-style: italic; font-size: .95rem; opacity: .95; margin-top: 3px; }
+    .row .arrow { font-size: 2rem; padding-right: 6px; }
+
+    .price {
+      flex: none; display: flex; align-items: center; justify-content: space-between; gap: 14px;
+      min-width: 150px; padding: 8px 16px; border-radius: 12px;
+      background: var(--green); border: 3px solid var(--green-dark);
+      box-shadow: inset 0 -5px 0 rgba(0,0,0,.2), inset 0 3px 0 rgba(255,255,255,.3);
+      font-size: 1.25rem;
+    }
+
+    /* Índice */
+    .index-top { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .progress {
+      flex: 1 1 220px; position: relative; height: 42px;
+      background: var(--ink); border: 3px solid #3a3a42; border-radius: 10px; overflow: hidden;
+      display: grid; place-items: center; font-size: 1.05rem;
+    }
+    .progress i { position: absolute; left: 0; top: 0; bottom: 0; width: 12%; background: var(--green); }
+    .progress span { position: relative; }
+    .tab {
+      height: 42px; padding: 0 16px; display: grid; place-items: center;
+      background: #2c2c33; border: 3px solid var(--ink); border-radius: 10px;
+      box-shadow: inset 0 3px 0 rgba(255,255,255,.12);
+    }
+    .tab.on { background: var(--orange); box-shadow: inset 0 -4px 0 rgba(0,0,0,.2), inset 0 3px 0 rgba(255,255,255,.3); }
+    .index-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; }
+    .index-list {
+      background: #18181c var(--studs); border: 3px solid var(--ink); border-radius: 12px; padding: 12px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; align-content: start;
+    }
+    .pcard {
+      aspect-ratio: 1 / 1.15; border: 3px solid var(--ink); border-radius: 10px; position: relative;
+      background: var(--green) var(--studs); display: flex; flex-direction: column; justify-content: flex-end;
+      align-items: center; padding-bottom: 8px; text-align: center; font-size: .9rem; line-height: 1.1;
+    }
+    .pcard small { font-style: italic; font-size: .72rem; }
+    .pcard.locked { background-color: #2c2c33; color: #8a8a95; }
+    .pcard.locked::before { content: "?"; position: absolute; top: 18%; font-size: 2rem; color: #4a4a54; }
+    .pcard .badge {
+      position: absolute; top: -8px; right: -8px; width: 26px; height: 26px; border-radius: 50%;
+      background: var(--red); border: 3px solid var(--ink); display: grid; place-items: center; font-size: .8rem;
+    }
+    .detail {
+      background: var(--blue) var(--studs); border: 4px solid var(--ink); border-radius: 12px;
+      outline: 3px solid var(--yellow); outline-offset: -8px;
+      padding: 22px 16px 16px; text-align: center; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
+    }
+    .detail .pname { font-size: 1.4rem; }
+    .detail .rarity { font-style: italic; }
+    .detail .rate { color: #8dff6e; font-style: italic; }
+    .reward { background: rgba(0,0,0,.35); border-radius: 10px; padding: 10px; margin-top: 8px; }
+    .reward .lbl { font-size: .8rem; letter-spacing: .05em; }
+    .reward .vals { display: flex; justify-content: center; gap: 22px; font-size: 1.15rem; font-style: italic; margin-top: 4px; }
+    .detail .btn-green { font-size: 1.2rem; padding: 10px; margin-top: 10px; outline: none; }
+
+    /* Características */
+    .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .feature {
+      border: 4px solid var(--ink); border-radius: 14px; padding: 18px 16px 20px;
+      background-image: var(--studs); box-shadow: 0 5px 0 var(--ink);
+    }
+    .feature .emoji { font-size: 2.2rem; margin-bottom: 8px; }
+    .feature h3 { font-size: 1.3rem; line-height: 1.1; margin-bottom: 6px; }
+    .feature p { font-size: .95rem; font-weight: 700; }
+    .feature.orange { background-color: var(--orange); }
+    .feature.blue { background-color: var(--blue); }
+    .feature.green { background-color: var(--green); }
+    .feature.red { background-color: var(--red); }
+
+    /* Llamado final */
+    .final { text-align: center; padding: 30px 0 60px; }
+    .final h2 {
+      font-family: var(--title); font-weight: 400; font-size: clamp(2rem, 5vw, 3rem);
+      -webkit-text-stroke: 7px #10204a; paint-order: stroke fill;
+      text-shadow: 0 5px 0 var(--blue), 0 9px 0 var(--red), 0 12px 0 #10204a;
+      margin-bottom: 30px;
+    }
+
+    footer {
+      background: var(--ink); border-top: 4px solid var(--ink); padding: 26px 0;
+      font-weight: 700; font-size: .9rem; color: #9a9aa5;
+    }
+    footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+    footer img { height: 26px; width: auto; }
+
+    /* Responsive */
+    @media (max-width: 880px) {
+      .hero-grid, .two, .index-grid { grid-template-columns: 1fr; }
+      .thumb { max-width: 420px; margin: 0 auto; }
+      .features { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .wrap { padding: 0 14px; }
+      .window-body { padding: 16px; }
+      .topbar .btn-red span.txt { display: none; }
+      .features { grid-template-columns: 1fr; }
+      .row { flex-wrap: wrap; }
+      .row .icon { width: 52px; height: 52px; }
+      .price { min-width: 0; width: 100%; }
+      .window-title { font-size: 2rem; -webkit-text-stroke: 6px #10204a; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA SUPERIOR -->
+  <header class="topbar flag">
+    <div class="wrap">
+      <a href="index.html" class="studio-logo"><img src="logo.png" alt="Onarquina Studios"></a>
+      <a href="index.html" class="btn-red stroke-sm">← <span class="txt">Volver al estudio</span></a>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="thumb"><img src="steal-an-parcero.jpg" alt="Portada de Steal An Parcero"></div>
+        <div>
+          <h1><span class="y">Steal</span> An Parcero</h1>
+          <p class="lead">Roba huevos de otras bases, protege la tuya, descubre parceros únicos y conviértete en el jugador más rico del servidor.</p>
+          <div class="tags">
+            <span class="tag live stroke-sm">● Activo</span>
+            <span class="tag">Roblox</span>
+            <span class="tag">Multijugador</span>
+            <span class="tag">🇨🇴 Hecho en Colombia</span>
+          </div>
+          <div class="btn-row">
+            <!-- Cambia el href por el enlace real del juego en Roblox -->
+            <a href="https://www.roblox.com/games/" target="_blank" rel="noopener" class="btn-green stroke">▶ JUGAR AHORA</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARACTERÍSTICAS -->
+    <section class="section">
+      <div class="window">
+        <div class="window-bar flag">
+          <div class="window-title">Juego</div>
+          <span class="btn-red window-close stroke-sm">X</span>
+        </div>
+        <div class="window-body">
+          <div class="features">
+            <div class="feature orange stroke-sm">
+              <div class="emoji">🥚</div>
+              <h3>Roba huevos</h3>
+              <p>Entra a las bases rivales y llévate sus huevos antes de que te atrapen.</p>
+            </div>
+            <div class="feature blue stroke-sm">
+              <div class="emoji">🏠</div>
+              <h3>Protege tu base</h3>
+              <p>Defiende lo tuyo: tus parceros generan dinero cada segundo.</p>
+            </div>
+            <div class="feature green stroke-sm">
+              <div class="emoji">⭐</div>
+              <h3>Rebirths</h3>
+              <p>Reinicia tu progreso para conseguir mejoras permanentes.</p>
+            </div>
+            <div class="feature red stroke-sm">
+              <div class="emoji">🏎️</div>
+              <h3>Carreras 1v1</h3>
+              <p>Reta a otro jugador y apuesta tus parceros en la pista.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ÍNDICE -->
+    <section class="section">
+      <div class="window">
+        <div class="window-bar flag">
+          <div class="window-title">Indice</div>
+          <span class="btn-red window-close stroke-sm">X</span>
+        </div>
+        <div class="window-body">
+          <p class="section-intro">Más de 45 parceros por descubrir. Complétalos en el Índice y reclama recompensas por cada uno.</p>
+          <div class="index-top stroke-sm">
+            <div class="progress"><i></i><span>DESCUBIERTOS 0/45</span></div>
+            <div class="tab on">TODOS</div>
+            <div class="tab">TENGO</div>
+            <div class="tab">FALTAN</div>
+          </div>
+          <div class="index-grid">
+            <div class="index-list stroke-sm">
+              <div class="pcard"><span class="badge">!</span>Parcero<small>Rareza</small></div>
+              <div class="pcard locked">???<small>Rareza</small></div>
+              <div class="pcard locked">???<small>Rareza</small></div>
+              <div class="pcard locked">???<small>Rareza</small></div>
+              <div class="pcard locked">???<small>Rareza</small></div>
+              <div class="pcard locked">???<small>Rareza</small></div>
+            </div>
+            <div class="detail stroke-sm">
+              <div class="pname">Noobini Parcerini</div>
+              <div class="rarity">Básico</div>
+              <div class="rate">$1/s</div>
+              <div class="reward">
+                <div class="lbl">RECOMPENSA</div>
+                <div class="vals"><span>💵 200</span><span>👟 +25</span></div>
+              </div>
+              <span class="btn-green">RECLAMAR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RASTROS Y VENTA -->
+    <section class="section two">
+      <div class="window">
+        <div class="window-bar flag">
+          <div class="window-title">Rastros</div>
+          <span class="btn-red window-close stroke-sm">X</span>
+        </div>
+        <div class="window-body stroke-sm">
+          <p class="section-intro">Compra rastros para correr más rápido y escapar con el botín.</p>
+          <div class="row orange">
+            <div class="icon">🔥</div>
+            <div class="info"><div class="name">Orange Trail</div><div class="sub">👟 x1.5 velocidad</div></div>
+            <div class="price"><span>💵</span><span>100</span></div>
+          </div>
+          <div class="row blue">
+            <div class="icon">💨</div>
+            <div class="info"><div class="name">Blue Trail</div><div class="sub">👟 x2 velocidad</div></div>
+            <div class="price"><span>💵</span><span>25000</span></div>
+          </div>
+          <div class="row green">
+            <div class="icon">✨</div>
+            <div class="info"><div class="name">Green Trail</div><div class="sub">👟 x2.5 velocidad</div></div>
+            <div class="price"><span>💵</span><span>500000</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="window">
+        <div class="window-bar flag">
+          <div class="window-title">Venta</div>
+          <span class="btn-red window-close stroke-sm">X</span>
+        </div>
+        <div class="window-body stroke-sm">
+          <p class="section-intro">Vende tus parceros y huevos cuando quieras para seguir creciendo.</p>
+          <div class="row green">
+            <div class="info"><div class="name">Vender lo que tengo en la mano</div><div class="sub">El parcero o huevo equipado</div></div>
+            <div class="arrow">&gt;</div>
+          </div>
+          <div class="row blue">
+            <div class="info"><div class="name">¿Cuánto vale lo que tengo?</div><div class="sub">Solo mirar el precio, sin vender</div></div>
+            <div class="arrow">&gt;</div>
+          </div>
+          <div class="row orange">
+            <div class="info"><div class="name">Vender todo mi inventario</div><div class="sub">Todos los parceros y huevos de la mochila</div></div>
+            <div class="arrow">&gt;</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LLAMADO FINAL -->
+    <section class="final">
+      <h2>¿Listo para robar?</h2>
+      <a href="https://www.roblox.com/games/" target="_blank" rel="noopener" class="btn-green stroke">▶ JUGAR EN ROBLOX</a>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <a href="index.html"><img src="logo.png" alt="Onarquina Studios"></a>
+      <span>© <span id="year"></span> Onarquina Studios · Steal An Parcero</span>
+    </div>
+  </footer>
+
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

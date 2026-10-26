@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onarquina Studios</title>
+  <meta name="description" content="Onarquina Studios — estudio de desarrollo de videojuegos en Roblox.">
+  <link rel="icon" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050505;
+      --surface: #0d0d0d;
+      --surface-2: #141414;
+      --line: #222222;
+      --text: #f2f0eb;
+      --muted: #8c8a85;
+      --soft: #5c5a56;
+      --serif: "Cormorant Garamond", Georgia, serif;
+      --sans: "Manrope", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+    /* Burbujas de fondo */
+    #bubbles { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+    header, main, footer { position: relative; z-index: 1; }
+    section { background: transparent; }
+
+    /* Estado de los juegos */
+    .status { display: inline-flex; align-items: center; gap: 8px; }
+    .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 4px rgba(74, 222, 128, .15); }
+    .game.soon { cursor: default; }
+    .game.soon:hover { background: var(--bg); }
+    .game.soon h3, .game.soon p { opacity: .55; }
+    .game.soon .go::after { display: none; }
+    .game.soon .go { color: var(--soft); }
+
+    /* Etiquetas pequeñas */
+    .label {
+      font-size: .72rem; font-weight: 600; letter-spacing: .28em;
+      text-transform: uppercase; color: var(--muted);
+    }
+
+    /* Navegación */
+    header {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(5, 5, 5, .88);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+    }
+    nav { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    nav .brand img { height: 34px; width: auto; }
+    .links { display: flex; gap: 36px; }
+    .links a {
+      font-size: .74rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--muted); transition: color .2s;
+    }
+    .links a:hover { color: var(--text); }
+
+    /* Hero */
+    .hero {
+      min-height: calc(100vh - 72px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 80px 0;
+    }
+    .hero .logo { width: min(560px, 86vw); height: auto; }
+    .hero .divider { width: 56px; height: 1px; background: var(--soft); margin: 44px auto 32px; }
+    .hero p.tagline {
+      font-family: var(--serif); font-style: italic; font-weight: 500;
+      font-size: clamp(1.35rem, 2.6vw, 1.8rem); color: var(--text); max-width: 34ch; line-height: 1.4;
+    }
+    .hero .label { margin-top: 22px; }
+    .cta { display: flex; gap: 14px; margin-top: 44px; flex-wrap: wrap; justify-content: center; }
+    .btn {
+      display: inline-block; padding: 15px 30px;
+      font-size: .74rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase;
+      border: 1px solid var(--text); transition: background .2s, color .2s;
+    }
+    .btn.solid { background: var(--text); color: var(--bg); }
+    .btn.solid:hover { background: transparent; color: var(--text); }
+    .btn.line:hover { background: var(--text); color: var(--bg); }
+
+    /* Secciones */
+    section { padding: 110px 0; border-top: 1px solid var(--line); }
+    .head { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 56px; flex-wrap: wrap; }
+    h2 {
+      font-family: var(--serif); font-weight: 500;
+      font-size: clamp(2.4rem, 5vw, 3.6rem); line-height: 1.05; letter-spacing: -.01em; margin-top: 14px;
+    }
+    h2 em { font-style: italic; color: var(--muted); }
+    .head p { color: var(--muted); max-width: 40ch; font-size: .95rem; }
+
+    /* Juegos */
+    .games { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+    .game { background: var(--bg); display: flex; flex-direction: column; transition: background .25s; }
+    .game:hover { background: var(--surface); }
+    .cover {
+      aspect-ratio: 4 / 3; background: var(--surface-2); position: relative; overflow: hidden;
+      display: flex; align-items: flex-end; padding: 22px;
+    }
+    .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(.25); transition: transform .5s, filter .5s; }
+    .game:hover .cover img { transform: scale(1.04); filter: grayscale(0); }
+    .cover .num { font-family: var(--serif); font-size: 4.2rem; line-height: 1; color: #2a2a2a; position: relative; }
+    .game-body { padding: 28px 26px 32px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+    .game h3 { font-family: var(--serif); font-weight: 600; font-size: 1.75rem; line-height: 1.15; }
+    .game p { color: var(--muted); font-size: .93rem; flex: 1; }
+    .game .go {
+      margin-top: 10px; font-size: .72rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase;
+      display: inline-flex; align-items: center; gap: 10px;
+    }
+    .game .go::after { content: ""; width: 26px; height: 1px; background: currentColor; transition: width .25s; }
+    .game:hover .go::after { width: 44px; }
+
+    /* Estudio */
+    .studio { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .studio .text p { color: var(--muted); margin-bottom: 18px; font-size: 1.02rem; }
+    .studio .text p.big {
+      font-family: var(--serif); font-size: 1.7rem; line-height: 1.4; color: var(--text); font-weight: 500;
+    }
+    .facts { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+    .fact { padding: 30px 26px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .fact b { display: block; font-family: var(--serif); font-weight: 500; font-size: 2.8rem; line-height: 1; margin-bottom: 10px; }
+    .fact span { color: var(--muted); font-size: .85rem; }
+
+    /* Servicios */
+    .services { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--line); }
+    .service { padding: 34px 26px 34px 0; border-right: 1px solid var(--line); }
+    .service + .service { padding-left: 26px; }
+    .service:last-child { border-right: 0; }
+    .service .label { color: var(--soft); }
+    .service h4 { font-family: var(--serif); font-weight: 600; font-size: 1.45rem; margin: 14px 0 10px; }
+    .service p { color: var(--muted); font-size: .9rem; }
+
+    /* Contacto */
+    .contact { text-align: center; }
+    .contact h2 { font-size: clamp(2.8rem, 7vw, 5.2rem); }
+    .contact p { color: var(--muted); max-width: 46ch; margin: 22px auto 0; }
+    .mail {
+      display: inline-block; margin-top: 40px;
+      font-family: var(--serif); font-style: italic; font-size: clamp(1.4rem, 3vw, 2rem);
+      border-bottom: 1px solid var(--soft); padding-bottom: 6px; transition: border-color .2s;
+    }
+    .mail:hover { border-color: var(--text); }
+    .socials { display: flex; gap: 30px; justify-content: center; margin-top: 44px; flex-wrap: wrap; }
+    .socials a { font-size: .72rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+    .socials a:hover { color: var(--text); }
+
+    footer { border-top: 1px solid var(--line); padding: 34px 0; }
+    footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+    footer img { height: 26px; width: auto; opacity: .7; }
+    footer span { color: var(--soft); font-size: .8rem; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .games { grid-template-columns: 1fr 1fr; }
+      .studio { grid-template-columns: 1fr; gap: 48px; }
+      .services { grid-template-columns: 1fr 1fr; }
+      .service, .service + .service { padding: 30px 22px; border-bottom: 1px solid var(--line); }
+      .service:nth-child(2n) { border-right: 0; }
+    }
+    @media (max-width: 620px) {
+      .wrap { padding: 0 16px; }
+      .links { display: none; }
+      section { padding: 80px 0; }
+      .games { grid-template-columns: 1fr; }
+      .services { grid-template-columns: 1fr; }
+      .service { border-right: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bubbles" aria-hidden="true"></canvas>
+
+  <header>
+    <nav class="wrap">
+      <a href="#" class="brand"><img src="logo.png" alt="Onarquina Studios"></a>
+      <div class="links">
+        <a href="#juegos">Juegos</a>
+        <a href="#estudio">Estudio</a>
+        <a href="#servicios">Servicios</a>
+        <a href="#contacto">Contacto</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- HERO -->
+    <div class="hero wrap">
+      <img class="logo" src="logo.png" alt="Onarquina Studios">
+      <div class="divider"></div>
+      <p class="tagline">Creamos mundos en Roblox que la gente quiere volver a jugar.</p>
+      <span class="label">Estudio de videojuegos · Colombia</span>
+      <div class="cta">
+        <a href="#juegos" class="btn solid">Ver nuestros juegos</a>
+        <a href="#contacto" class="btn line">Contacto</a>
+      </div>
+    </div>
+
+    <!-- JUEGOS -->
+    <section id="juegos">
+      <div class="wrap">
+        <div class="head">
+          <div>
+            <span class="label">Portafolio</span>
+            <h2>Nuestros <em>juegos</em></h2>
+          </div>
+          <p>Experiencias diseñadas, programadas y mantenidas por el equipo de Onarquina Studios.</p>
+        </div>
+
+        <div class="games">
+          <a class="game" href="steal-an-parcero.html">
+            <div class="cover"><img src="steal-an-parcero.jpg" alt="Steal An Parcero"></div>
+            <div class="game-body">
+              <span class="label status">Activo · Roblox</span>
+              <h3>Steal An Parcero</h3>
+              <p>Roba huevos, protege tu base, colecciona parceros y hazte el más rico del servidor.</p>
+              <span class="go">Ver juego</span>
+            </div>
+          </a>
+
+          <div class="game soon">
+            <div class="cover"><span class="num">02</span></div>
+            <div class="game-body">
+              <span class="label">Roblox · Social</span>
+              <h3>Base de Emperium</h3>
+              <p>Una discoteca en Roblox para reunirte con amigos, escuchar música y vivir la noche.</p>
+              <span class="go">Próximamente</span>
+            </div>
+          </div>
+
+          <div class="game soon">
+            <div class="cover"><span class="num">03</span></div>
+            <div class="game-body">
+              <span class="label">Roblox · Terror</span>
+              <h3>Capítulo 1</h3>
+              <p>Sobrevive la noche en la oficina mientras los animatrónicos se acercan. Vigila cada puerta.</p>
+              <span class="go">Próximamente</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTUDIO -->
+    <section id="estudio">
+      <div class="wrap studio">
+        <div>
+          <span class="label">El estudio</span>
+          <h2>Hecho con <em>visión</em> y disciplina</h2>
+        </div>
+        <div class="text">
+          <p class="big">Onarquina Studios es un equipo dedicado a crear juegos en Roblox con identidad propia.</p>
+          <p>Cuidamos cada detalle: desde el diseño de mapas y sistemas de juego hasta interfaces pulidas y actualizaciones constantes para nuestra comunidad.</p>
+          <div class="facts">
+            <div class="fact"><b>1</b><span>Juego activo</span></div>
+            <div class="fact"><b>—</b><span>Visitas totales</span></div>
+            <div class="fact"><b>—</b><span>Miembros del grupo</span></div>
+            <div class="fact"><b>2026</b><span>En activo</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICIOS -->
+    <section id="servicios">
+      <div class="wrap">
+        <div class="head">
+          <div>
+            <span class="label">Qué hacemos</span>
+            <h2>Servicios</h2>
+          </div>
+        </div>
+        <div class="services">
+          <div class="service"><span class="label">I</span><h4>Diseño de juego</h4><p>Mecánicas, progresión y economía pensadas para retener jugadores.</p></div>
+          <div class="service"><span class="label">II</span><h4>Programación</h4><p>Sistemas en Luau: tiendas, mascotas, PvP, carreras y más.</p></div>
+          <div class="service"><span class="label">III</span><h4>Interfaces</h4><p>GUIs profesionales construidas en Roblox Studio, listas para editar.</p></div>
+          <div class="service"><span class="label">IV</span><h4>Mapas y entornos</h4><p>Construcción y ambientación de mundos con estilo propio.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section id="contacto" class="contact">
+      <div class="wrap">
+        <span class="label">Contacto</span>
+        <h2>Hablemos de <em>tu próximo</em> proyecto</h2>
+        <p>Colaboraciones, comisiones o propuestas. Escríbenos y te respondemos pronto.</p>
+        <a class="mail" href="mailto:onarquinastudios@gmail.com">onarquinastudios@gmail.com</a>
+        <div class="socials">
+          <a href="#" target="_blank" rel="noopener">Grupo de Roblox</a>
+          <a href="#" target="_blank" rel="noopener">Discord</a>
+          <a href="#" target="_blank" rel="noopener">TikTok</a>
+          <a href="#" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <img src="logo.png" alt="Onarquina Studios">
+      <span>© <span id="year"></span> Onarquina Studios. Todos los derechos reservados.</span>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Burbujas flotantes (solo líneas finas, sin degradados)
+    (function () {
+      const canvas = document.getElementById("bubbles");
+      const ctx = canvas.getContext("2d");
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let w, h, dpr, bubbles = [];
+      const mouse = { x: -9999, y: -9999 };
+
+      function make(initial) {
+        const r = 3 + Math.pow(Math.random(), 2.2) * 70;
+        return {
+          x: Math.random() * w,
+          y: initial ? Math.random() * h : h + r + Math.random() * 100,
+          r,
+          speed: 0.12 + Math.random() * 0.35 + (70 - r) * 0.004,
+          sway: Math.random() * Math.PI * 2,
+          swaySpeed: 0.004 + Math.random() * 0.01,
+          alpha: 0.06 + Math.random() * 0.14,
+          ox: 0, oy: 0
+        };
+      }
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        w = window.innerWidth; h = window.innerHeight;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const count = Math.round(Math.min(48, Math.max(18, w / 30)));
+        bubbles = Array.from({ length: count }, () => make(true));
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+        for (const b of bubbles) {
+          if (!reduce) {
+            b.y -= b.speed;
+            b.sway += b.swaySpeed;
+            // Se apartan suavemente del cursor
+            const dx = b.x + b.ox - mouse.x, dy = b.y + b.oy - mouse.y;
+            const dist = Math.hypot(dx, dy), reach = 140 + b.r;
+            if (dist < reach && dist > 0) {
+              const f = (1 - dist / reach) * 2.2;
+              b.ox += (dx / dist) * f; b.oy += (dy / dist) * f;
+            }
+            b.ox *= 0.95; b.oy *= 0.95;
+            if (b.y < -b.r - 20) Object.assign(b, make(false));
+          }
+          const x = b.x + Math.sin(b.sway) * 14 + b.ox, y = b.y + b.oy;
+
+          ctx.beginPath();
+          ctx.arc(x, y, b.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255,255,255,${b.alpha * 0.12})`;
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = `rgba(255,255,255,${b.alpha})`;
+          ctx.stroke();
+
+          // Reflejo de la burbuja
+          if (b.r > 8) {
+            ctx.beginPath();
+            ctx.arc(x, y, b.r * 0.68, Math.PI * 1.08, Math.PI * 1.42);
+            ctx.lineWidth = Math.max(1, b.r * 0.06);
+            ctx.lineCap = "round";
+            ctx.strokeStyle = `rgba(255,255,255,${b.alpha * 1.6})`;
+            ctx.stroke();
+          }
+        }
+        if (!reduce) requestAnimationFrame(draw);
+      }
+
+      window.addEventListener("resize", resize);
+      window.addEventListener("mousemove", e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+      window.addEventListener("mouseleave", () => { mouse.x = mouse.y = -9999; });
+      resize(); draw();
+    })();
+  </script>
+</body>
+</html>
